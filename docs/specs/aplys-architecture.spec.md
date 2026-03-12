@@ -75,10 +75,10 @@ Bootstrap フローからのみ呼び出されます。
 
 ### Bootstrap コンポーネント
 
-| コンポーネント | 配置                          | 役割                                     |
-| -------------- | ----------------------------- | ---------------------------------------- |
-| bundle         | `tooling/bundles/<bundle>`    | tool name の集合定義 (1行1エントリ)      |
-| tool registry  | `tools-registry/<tool>.yaml`  | tool → (provider, packages) のマッピング |
+| コンポーネント | 配置                         | 役割                                     |
+| -------------- | ---------------------------- | ---------------------------------------- |
+| bundle         | `tooling/bundles/<bundle>`   | tool name の集合定義 (1行1エントリ)      |
+| tool registry  | `tools-registry/<tool>.yaml` | tool → (provider, packages) のマッピング |
 
 > `providers` は Bootstrap から呼び出されますが、runtime plugin として Core (`lib/providers/`) に配置します。
 
