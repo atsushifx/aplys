@@ -76,11 +76,20 @@ tab_width = 2
 indent_style = space
 indent_size = 2
 tab_width = 2
-# config for shfmt
-shfmt_case_indent = true
-shfmt_space_redirects = true
-shfmt_binary_ops = true
-shfmt_simplify = true
+
+## config for shfmt
+# --language-dialect
+shell_dialect      = bash
+simplify           = true
+binary_next_line   = true
+# --case-indent
+switch_case_indent = true
+space_redirects    = true
+keep_padding       = true
+# --func-next-line
+function_next_line = true
+minify             = true
+
 
 # PowerShell
 [*.ps1]
