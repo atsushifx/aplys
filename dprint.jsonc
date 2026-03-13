@@ -14,8 +14,12 @@
   "newLineKind": "lf",
   // Include/Exclude patterns
   "includes": [
+    // language files
     "**/*.js",
     "**/*.ts",
+    // shell scripts
+    "**/*.sh",
+    // config files
     "**/*.json",
     "**/*.jsonc",
     "**/*.yml",
@@ -41,6 +45,7 @@
     "https://plugins.dprint.dev/json-0.21.0.wasm",
     "https://plugins.dprint.dev/markdown-0.20.0.wasm",
     "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.1.wasm",
+    "https://plugins.dprint.dev/hrko/shfmt-v0.0.4.wasm",
   ],
   // Language-specific settings
   "typescript": {
@@ -52,7 +57,14 @@
     "arrowFunction.useParentheses": "force",
     "trailingCommas": "onlyMultiLine",
   },
-  "json": {},
+  "shellscript": {
+    "indentWidth": 2,
+    "useTabs": false,
+    "lineWidth": 120,
+  },
+  "jsonc": {
+    "trailingCommas": "onlyMultiLine",
+  },
   "markdown": {
     "emphasisKind": "asterisks",
   },
