@@ -41,10 +41,10 @@
   ],
   // Plugins
   "plugins": [
-    "https://plugins.dprint.dev/typescript-0.95.12.wasm",
-    "https://plugins.dprint.dev/json-0.21.0.wasm",
-    "https://plugins.dprint.dev/markdown-0.20.0.wasm",
-    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.5.1.wasm",
+    "https://plugins.dprint.dev/typescript-0.95.15.wasm",
+    "https://plugins.dprint.dev/json-0.21.1.wasm",
+    "https://plugins.dprint.dev/markdown-0.21.1.wasm",
+    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm",
     "https://plugins.dprint.dev/hrko/shfmt-v0.0.4.wasm",
   ],
   // Language-specific settings
@@ -57,10 +57,9 @@
     "arrowFunction.useParentheses": "force",
     "trailingCommas": "onlyMultiLine",
   },
-  "shellscript": {
+  "shfmt": {
     "indentWidth": 2,
     "useTabs": false,
-    "lineWidth": 120,
   },
   "jsonc": {
     "trailingCommas": "onlyMultiLine",
