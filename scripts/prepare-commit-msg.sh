@@ -61,11 +61,6 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 readonly REPO_ROOT
 
-##
-# @description Script directory path
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly SCRIPT_DIR
-
 # ============================================================================
 # Script Configuration
 # ============================================================================
@@ -148,35 +143,33 @@ EOF
 parse_options() {
   while [[ $# -gt 0 ]]; do
     case $1 in
-      --output|-o)
-        if [[ -z "${2:-}" ]]; then
-          echo "Error: --output requires an argument" >&2
-          exit 1
-        fi
-        OUTPUT_FILE="$2"
-        shift 2
-        ;;
-      --model)
-        if [[ -z "${2:-}" ]]; then
-          echo "Error: --model requires an argument" >&2
-          exit 1
-        fi
-        AI_MODEL="$2"
-        shift 2
-        ;;
-      --help|-h)
-        display_help
-        exit 0
-        ;;
-      -*)
-        echo "Error: Unknown option: $1" >&2
+    --output | -o)
+      if [[ -z "${2:-}" ]]; then
+        echo "Error: --output requires an argument" >&2
         exit 1
-        ;;
+      fi
+      OUTPUT_FILE="$2"
+      shift 2
+      ;;
+    --model)
+      if [[ -z "${2:-}" ]]; then
+        echo "Error: --model requires an argument" >&2
+        exit 1
+      fi
+      AI_MODEL="$2"
+      shift 2
+      ;;
+    --help | -h)
+      display_help
+      exit 0
+      ;;
+    -*)
+      echo "Error: Unknown option: $1" >&2
+      exit 1
+      ;;
     esac
   done
 }
-
-
 
 ##
 # @description Check if an existing commit message is present in file
@@ -211,14 +204,13 @@ has_existing_message() {
 make_context_block() {
   echo ""
   echo "===== GIT LOGS ====="
-  git log --oneline -10 || echo "No logs available."
+  git log --oneline -"${MAX_LOG_ENTRIES}" || echo "No logs available."
   echo ""
 
   echo "===== GIT DIFF ====="
   git diff --cached || echo "No diff available."
   echo "===== END DIFF ====="
 }
-
 
 ##
 # @description Set AI command array for specified model
@@ -252,36 +244,35 @@ get_model_command() {
   local model="${1:-${DEFAULT_AI_MODEL}}"
 
   case "$model" in
-    # OpenAI models
-    gpt-* | o1-*)
-      AI_COMMAND=("codex" "exec" "--model" "${model}")
-      ;;
+  # OpenAI models
+  gpt-* | o1-*)
+    AI_COMMAND=("codex" "exec" "--model" "${model}")
+    ;;
 
-    # Anthropic (Claude) models
-    claude-* | haiku | sonnet | opus)
-      # execute claude with no-mcp, accept edits permission
-      AI_COMMAND=("claude" "-p" "--permission-mode" "acceptEdits" "--strict-mcp-config" "--mcp-config" '{"mcpServers":{}}' "--model" "${model}")
-      ;;
+  # Anthropic (Claude) models
+  claude-* | haiku | sonnet | opus)
+    # execute claude with no-mcp, accept edits permission
+    AI_COMMAND=("claude" "-p" "--permission-mode" "acceptEdits" "--strict-mcp-config" "--mcp-config" '{"mcpServers":{}}' "--model" "${model}")
+    ;;
 
-    # Copilot models (copilot/model format)
-    copilot/*)
-      local copilot_model="${model#copilot/}"
-      AI_COMMAND=("copilot" "--model" "${copilot_model}")
-      ;;
+  # Copilot models (copilot/model format)
+  copilot/*)
+    local copilot_model="${model#copilot/}"
+    AI_COMMAND=("copilot" "--model" "${copilot_model}")
+    ;;
 
-    # OpenCode models (provider/model format)
-    */*)
-      AI_COMMAND=("opencode" "run" "--model" "${model}")
-      ;;
+  # OpenCode models (provider/model format)
+  */*)
+    AI_COMMAND=("opencode" "run" "--model" "${model}")
+    ;;
 
-    # Unsupported model
-    *)
-      echo "Error: Unsupported model: ${model}" >&2
-      return 1
-      ;;
+  # Unsupported model
+  *)
+    echo "Error: Unsupported model: ${model}" >&2
+    return 1
+    ;;
   esac
 }
-
 
 ##
 # @description Generate commit message using configured AI model
@@ -336,14 +327,14 @@ generate_commit_message() {
   local diff_output
 
   diff_output=$({
-    cat .claude/agents/commit-message-generator.md
+    cat "${AGENT_TEMPLATE_PATH}"
     echo ""
     make_context_block
   })
 
   local full_output
 
-  full_output=$(echo "$diff_output" | "${AI_COMMAND[@]}" )
+  full_output=$(echo "$diff_output" | "${AI_COMMAND[@]}")
 
   # Extract the commit message from AI response
   # Skip context output and extract only the message between markers
@@ -358,22 +349,21 @@ generate_commit_message() {
 
   # Format 1: Try extracting from standard markers (traditional format)
   if echo "$after_diff" | grep -q '^=== commit header ==='; then
-    extracted_msg=$(echo "$after_diff" | \
-      sed -n '/^=== commit header ===/,/^=== commit footer ===/p' | \
+    extracted_msg=$(echo "$after_diff" |
+      sed -n '/^=== commit header ===/,/^=== commit footer ===/p' |
       sed '1d;$d')
   fi
 
   # Format 2: If not found, try markdown code blocks (```text, ```yaml, or plain ```)
   if [[ -z "$extracted_msg" ]] && echo "$after_diff" | grep -qE '^```(text|yaml)?$'; then
-    extracted_msg=$(echo "$after_diff" | \
-      sed -nE '/^```(text|yaml)?$/,/^```$/p' | \
-      sed '1d;$d')
+    # shellcheck disable=SC2016
+    extracted_msg=$(echo "$after_diff" | sed -nE '/^```(text|yaml)?$/,/^```$/p' | sed '1d;$d')
   fi
 
   # If still not found, report error
   if [[ -z "$extracted_msg" ]]; then
     echo "Error: commit message not found in AI output" >&2
-    echo "Expected format: either '=== commit header ===' markers or '```text...```' code blocks" >&2
+    echo "Expected format: either '=== commit header ===' markers or '\`\`\`text...\`\`\`' code blocks" >&2
     echo "Debug output:" >&2
     echo "$full_output" >&2
     return 1
@@ -401,7 +391,7 @@ output_commit_message() {
   else
     # Write to file (Git hook mode)
     rm -f "${OUTPUT_FILE}"
-    echo "${commit_msg}" > "${OUTPUT_FILE}"
+    echo "${commit_msg}" >"${OUTPUT_FILE}"
     echo "[OK] Commit message written to $OUTPUT_FILE" >&2
   fi
 }
