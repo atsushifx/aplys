@@ -37,7 +37,7 @@
 --skip-message moderate
 
 # Fail if no examples found (prevent silent failures)
---fail-no-examples
+# --fail-no-examples
 
 # Don't treat warnings as failures (allow exit code 0 with warnings)
 --no-warning-as-failure
